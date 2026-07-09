@@ -1,17 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:MyAvaloniaApp.ViewModels"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="MyAvaloniaApp.Views.MainWindow"
-        x:DataType="vm:MainWindowViewModel"
         Width="900"
         Height="560"
-        Icon="/Assets/avalonia-logo.ico"
         Title="IDA Görüntü İşleme Test Arayüzü"
         Background="#0F172A">
-
 
     <Grid Margin="16"
           ColumnDefinitions="*,340"
@@ -19,7 +12,6 @@
           ColumnSpacing="16"
           RowSpacing="12">
 
-        <!-- ÜST BAR -->
         <StackPanel Grid.Row="0"
                     Grid.ColumnSpan="2"
                     Orientation="Horizontal"
@@ -27,13 +19,11 @@
 
             <Button Content="TCP Server Başlat"
                     Click="StartButton_Click"
-                    Padding="14,8"
-                    Background="red"/>
+                    Padding="14,8"/>
 
             <Button Content="Temizle"
                     Click="ClearButton_Click"
-                    Padding="14,8"
-                    Background="red"/>
+                    Padding="14,8"/>
 
             <TextBlock x:Name="StatusText"
                        Text="Bekleniyor..."
@@ -42,7 +32,6 @@
                        FontSize="16"/>
         </StackPanel>
 
-        <!-- SOL LOG -->
         <Border Grid.Row="1"
                 Grid.Column="0"
                 Background="#111827"
@@ -71,17 +60,16 @@
             </Grid>
         </Border>
 
-        <!-- SAĞ GÖRÜNTÜ İŞLEME KARESİ -->
         <StackPanel Grid.Row="1"
                     Grid.Column="1"
                     Spacing="10">
 
-            <TextBlock Text="Kamera Konum Haritası"
+            <TextBlock Text="Mini Engel Haritası"
                        Foreground="White"
                        FontSize="22"
                        FontWeight="Bold"/>
 
-            <TextBlock Text="Görülen renkler, kameradaki X/Y konumuna göre bu kareye çizilir."
+            <TextBlock Text="Engeller, tahmini mesafe ve sağ/sol konuma göre çizilir."
                        Foreground="#CBD5E1"
                        TextWrapping="Wrap"
                        FontSize="13"/>
@@ -94,7 +82,7 @@
                     CornerRadius="8">
 
                 <Grid>
-                    <TextBlock Text="KAMERA ALANI"
+                    <TextBlock Text="ÜSTTEN BAKIŞ"
                                Foreground="#1E293B"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
@@ -107,6 +95,10 @@
                 </Grid>
             </Border>
 
+            <TextBlock Text="Altta İDA, yukarı doğru kamera önü kabul edilir."
+                       Foreground="#94A3B8"
+                       TextWrapping="Wrap"
+                       FontSize="12"/>
         </StackPanel>
 
     </Grid>

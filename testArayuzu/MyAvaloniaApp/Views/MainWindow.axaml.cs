@@ -22,6 +22,10 @@ public partial class MainWindow : Window
 
     private const double CanvasSize = 320.0;
 
+    // Haritanın ölçeği
+    private const double MapForwardM = 8.0;   // ileri yönde 8 metre göster
+    private const double MapHalfWidthM = 4.0; // sağ-sol 4'er metre göster
+
     public MainWindow()
     {
         InitializeComponent();
@@ -36,6 +40,7 @@ public partial class MainWindow : Window
         }
 
         _cts = new CancellationTokenSource();
+
         _server = new TcpListener(IPAddress.Loopback, 5055);
         _server.Start();
 
@@ -112,31 +117,21 @@ public partial class MainWindow : Window
     private void ParseFrameLine(string line)
     {
         // Beklenen format:
-        // FRAME,640,480;green,0.91,80,120,90,100;red,0.88,420,180,80,90
+        // FRAME,640,480;yellow,0.91,250,130,80,120,2.40,-0.30
+        //
+        // FRAME,frameW,frameH;color,conf,x,y,w,h,distanceM,lateralM
 
         if (!line.StartsWith("FRAME,", StringComparison.OrdinalIgnoreCase))
             return;
 
         VisionCanvas.Children.Clear();
+        DrawBoat();
+        DrawGrid();
 
         string[] parts = line.Split(';', StringSplitOptions.RemoveEmptyEntries);
 
         if (parts.Length == 0)
             return;
-
-        string[] header = parts[0].Split(',');
-
-        int frameW = 640;
-        int frameH = 480;
-
-        if (header.Length >= 3)
-        {
-            int.TryParse(header[1], out frameW);
-            int.TryParse(header[2], out frameH);
-        }
-
-        if (frameW <= 0) frameW = 640;
-        if (frameH <= 0) frameH = 480;
 
         int detectionCount = 0;
 
@@ -144,58 +139,159 @@ public partial class MainWindow : Window
         {
             string[] f = parts[i].Split(',');
 
-            if (f.Length < 6)
+            if (f.Length < 8)
                 continue;
 
             string colorName = f[0];
 
             float.TryParse(f[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float conf);
+
+            // x,y,w,h şimdilik log için duruyor; haritada distance/lateral kullanıyoruz.
             int.TryParse(f[2], out int x);
             int.TryParse(f[3], out int y);
             int.TryParse(f[4], out int w);
             int.TryParse(f[5], out int h);
 
-            DrawDetection(colorName, conf, x, y, w, h, frameW, frameH);
+            double.TryParse(f[6], NumberStyles.Float, CultureInfo.InvariantCulture, out double distanceM);
+            double.TryParse(f[7], NumberStyles.Float, CultureInfo.InvariantCulture, out double lateralM);
+
+            DrawMapDetection(colorName, conf, distanceM, lateralM);
             detectionCount++;
         }
 
         StatusText.Text = detectionCount == 0
             ? "FRAME geldi ama tespit yok."
-            : $"{detectionCount} tespit çizildi.";
+            : $"{detectionCount} tespit haritaya çizildi.";
     }
 
-    private void DrawDetection(string colorName, float confidence, int x, int y, int w, int h, int frameW, int frameH)
+    private void DrawBoat()
     {
-        double drawX = Math.Clamp((double)x / frameW * CanvasSize, 0, CanvasSize - 5);
-        double drawY = Math.Clamp((double)y / frameH * CanvasSize, 0, CanvasSize - 5);
-        double drawW = Math.Clamp((double)w / frameW * CanvasSize, 14, CanvasSize - drawX);
-        double drawH = Math.Clamp((double)h / frameH * CanvasSize, 14, CanvasSize - drawY);
+        double boatX = CanvasSize / 2.0;
+        double boatY = CanvasSize - 25;
 
-        IBrush brush = GetBrush(colorName);
-
-        var rect = new Rectangle
+        var boat = new Polygon
         {
-            Width = drawW,
-            Height = drawH,
-            Stroke = brush,
-            StrokeThickness = 3,
-            Fill = Brushes.Transparent
+            Points =
+            {
+                new Point(boatX, boatY - 18),
+                new Point(boatX - 12, boatY + 12),
+                new Point(boatX + 12, boatY + 12)
+            },
+            Fill = Brushes.DeepSkyBlue,
+            Stroke = Brushes.White,
+            StrokeThickness = 1
         };
 
-        Canvas.SetLeft(rect, drawX);
-        Canvas.SetTop(rect, drawY);
-        VisionCanvas.Children.Add(rect);
+        VisionCanvas.Children.Add(boat);
 
         var label = new TextBlock
         {
-            Text = $"{colorName} {(confidence * 100):F0}%",
-            Foreground = brush,
-            FontSize = 13,
+            Text = "İDA",
+            Foreground = Brushes.White,
+            FontSize = 12,
             FontWeight = FontWeight.Bold
         };
 
-        Canvas.SetLeft(label, drawX);
-        Canvas.SetTop(label, Math.Max(0, drawY - 20));
+        Canvas.SetLeft(label, boatX - 12);
+        Canvas.SetTop(label, boatY + 14);
+
+        VisionCanvas.Children.Add(label);
+    }
+
+    private void DrawGrid()
+    {
+        // Orta çizgi
+        var centerLine = new Line
+        {
+            StartPoint = new Point(CanvasSize / 2, 10),
+            EndPoint = new Point(CanvasSize / 2, CanvasSize - 45),
+            Stroke = Brushes.DarkSlateGray,
+            StrokeThickness = 1
+        };
+
+        VisionCanvas.Children.Add(centerLine);
+
+        // 2m, 4m, 6m, 8m mesafe çizgileri
+        for (int m = 2; m <= 8; m += 2)
+        {
+            double usableHeight = CanvasSize - 60;
+            double y = CanvasSize - 45 - (m / MapForwardM) * usableHeight;
+
+            var line = new Line
+            {
+                StartPoint = new Point(10, y),
+                EndPoint = new Point(CanvasSize - 10, y),
+                Stroke = Brushes.DarkSlateGray,
+                StrokeThickness = 1
+            };
+
+            VisionCanvas.Children.Add(line);
+
+            var label = new TextBlock
+            {
+                Text = $"{m}m",
+                Foreground = Brushes.Gray,
+                FontSize = 10
+            };
+
+            Canvas.SetLeft(label, 12);
+            Canvas.SetTop(label, y - 12);
+
+            VisionCanvas.Children.Add(label);
+        }
+    }
+
+    private void DrawMapDetection(string colorName, float confidence, double distanceM, double lateralM)
+    {
+        if (distanceM <= 0)
+            return;
+
+        double usableHeight = CanvasSize - 60;
+        double usableWidth = CanvasSize - 40;
+
+        double mapX = CanvasSize / 2.0 + (lateralM / MapHalfWidthM) * (usableWidth / 2.0);
+        double mapY = CanvasSize - 45 - (distanceM / MapForwardM) * usableHeight;
+
+        mapX = Math.Clamp(mapX, 10, CanvasSize - 10);
+        mapY = Math.Clamp(mapY, 10, CanvasSize - 45);
+
+        IBrush brush = GetBrush(colorName);
+
+        double size = colorName.ToLowerInvariant() switch
+        {
+            "black" => 22,
+            "red" => 22,
+            "green" => 22,
+            "yellow" => 16,
+            "orange" => 16,
+            _ => 16
+        };
+
+        var obstacle = new Ellipse
+        {
+            Width = size,
+            Height = size,
+            Fill = brush,
+            Stroke = Brushes.White,
+            StrokeThickness = 1
+        };
+
+        Canvas.SetLeft(obstacle, mapX - size / 2.0);
+        Canvas.SetTop(obstacle, mapY - size / 2.0);
+
+        VisionCanvas.Children.Add(obstacle);
+
+        var label = new TextBlock
+        {
+            Text = $"{colorName}\n{distanceM:F1} m",
+            Foreground = Brushes.White,
+            FontSize = 11,
+            FontWeight = FontWeight.Bold
+        };
+
+        Canvas.SetLeft(label, mapX + 8);
+        Canvas.SetTop(label, mapY - 12);
+
         VisionCanvas.Children.Add(label);
     }
 
@@ -215,6 +311,7 @@ public partial class MainWindow : Window
     private void AppendLog(string text)
     {
         string time = DateTime.Now.ToString("HH:mm:ss");
+
         LogBox.Text = $"[{time}] {text}\n" + LogBox.Text;
 
         if (LogBox.Text.Length > 8000)
@@ -232,6 +329,7 @@ public partial class MainWindow : Window
     {
         _cts?.Cancel();
         _server?.Stop();
+
         base.OnClosed(e);
     }
 }
