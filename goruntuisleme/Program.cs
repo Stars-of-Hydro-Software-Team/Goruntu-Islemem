@@ -5,6 +5,10 @@ using OpenCvSharp;
 using OpenCvSharp.Dnn;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
+// bunları test için ekledim sadece kaldırılabilir ilerleyen süreçte 
+using System.IO;
+using System.Net.Sockets;
+using System.Text;
 
 namespace IdaHavuzTesti
 {
@@ -21,6 +25,9 @@ namespace IdaHavuzTesti
         static void Main(string[] args)
         {
             Console.WriteLine("Havuz Testi Baslatiliyor...");
+
+            TcpClient? uiClient = null;             // bu satr da test için eklendi 
+            StreamWriter? uiWriter = null;          // tcp ile arayüze atıyorum veriyi 
 
             // 1. Modelin Yuklenmesi
             string modelPath = "best.onnx";
@@ -55,6 +62,17 @@ namespace IdaHavuzTesti
                     // 5. YOLOv8 ONNX Cikarimi
                     var detections = RunYoloInference(session, processedFrame);
 
+                    EnsureUiConnection(ref uiClient, ref uiWriter);
+                    SendVisionFrame(uiWriter, detections, processedFrame.Width, processedFrame.Height);
+                    foreach (var det in detections)
+                    {
+                        Console.WriteLine($"DETECT,{det.ClassName},{det.Confidence:F2},{det.X},{det.Y},{det.Width},{det.Height}");
+                    }
+
+                    // 6. Tespitleri Ekrana Ciz
+                    DrawDetections(processedFrame, detections);
+
+
                     // Terminale görülen renkleri yazdır
                     if (detections.Count > 0)
                     {
@@ -66,10 +84,6 @@ namespace IdaHavuzTesti
                         Console.Out.Flush();
                         }
                     }
-
-
-                    // 6. Tespitleri Ekrana Ciz
-                    DrawDetections(processedFrame, detections);
 
                     // 7. Goster ve Kaydet
                     writer.Write(processedFrame);
@@ -221,6 +235,58 @@ namespace IdaHavuzTesti
             }
 
             return detections;
+        }
+
+        static void EnsureUiConnection(ref TcpClient? client, ref StreamWriter? writer)
+        {
+            if (client != null && client.Connected && writer != null)
+                return;
+
+            try
+            {
+                client?.Close();
+
+                client = new TcpClient();
+                client.Connect("127.0.0.1", 5055);
+
+                writer = new StreamWriter(client.GetStream(), Encoding.UTF8)
+                {
+                    AutoFlush = true
+                };
+
+                Console.WriteLine("Arayüze bağlandı: 127.0.0.1:5055");
+            }
+            catch
+            {
+                writer = null;
+                client = null;
+            }
+        }
+
+        static void SendVisionFrame(StreamWriter? writer, List<Detection> detections, int frameW, int frameH)
+        {
+            if (writer == null)
+                return;
+
+            StringBuilder sb = new StringBuilder();
+
+            // Format:
+            // FRAME,640,480;green,0.87,230,140,75,90
+            sb.Append($"FRAME,{frameW},{frameH}");
+
+            foreach (var det in detections)
+            {
+                sb.Append($";{det.ClassName},{det.Confidence:F2},{det.X},{det.Y},{det.Width},{det.Height}");
+            }
+
+            try
+            {
+                writer.WriteLine(sb.ToString());
+            }
+            catch
+            {
+                // Arayüz kapanırsa program çökmesin
+            }
         }
 
         // --- Tespitleri Cizme ---

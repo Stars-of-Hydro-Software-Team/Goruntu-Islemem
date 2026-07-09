@@ -1,0 +1,113 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MyAvaloniaApp.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="MyAvaloniaApp.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Width="900"
+        Height="560"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="IDA Görüntü İşleme Test Arayüzü"
+        Background="#0F172A">
+
+
+    <Grid Margin="16"
+          ColumnDefinitions="*,340"
+          RowDefinitions="Auto,*"
+          ColumnSpacing="16"
+          RowSpacing="12">
+
+        <!-- ÜST BAR -->
+        <StackPanel Grid.Row="0"
+                    Grid.ColumnSpan="2"
+                    Orientation="Horizontal"
+                    Spacing="10">
+
+            <Button Content="TCP Server Başlat"
+                    Click="StartButton_Click"
+                    Padding="14,8"
+                    Background="red"/>
+
+            <Button Content="Temizle"
+                    Click="ClearButton_Click"
+                    Padding="14,8"
+                    Background="red"/>
+
+            <TextBlock x:Name="StatusText"
+                       Text="Bekleniyor..."
+                       Foreground="White"
+                       VerticalAlignment="Center"
+                       FontSize="16"/>
+        </StackPanel>
+
+        <!-- SOL LOG -->
+        <Border Grid.Row="1"
+                Grid.Column="0"
+                Background="#111827"
+                BorderBrush="#334155"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="12">
+
+            <Grid RowDefinitions="Auto,*">
+                <TextBlock Text="Gelen TCP Verisi"
+                           Foreground="White"
+                           FontSize="22"
+                           FontWeight="Bold"
+                           Margin="0,0,0,10"/>
+
+                <TextBox x:Name="LogBox"
+                         Grid.Row="1"
+                         IsReadOnly="True"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         FontFamily="Consolas"
+                         FontSize="14"
+                         Foreground="White"
+                         Background="#020617"
+                         BorderThickness="0"/>
+            </Grid>
+        </Border>
+
+        <!-- SAĞ GÖRÜNTÜ İŞLEME KARESİ -->
+        <StackPanel Grid.Row="1"
+                    Grid.Column="1"
+                    Spacing="10">
+
+            <TextBlock Text="Kamera Konum Haritası"
+                       Foreground="White"
+                       FontSize="22"
+                       FontWeight="Bold"/>
+
+            <TextBlock Text="Görülen renkler, kameradaki X/Y konumuna göre bu kareye çizilir."
+                       Foreground="#CBD5E1"
+                       TextWrapping="Wrap"
+                       FontSize="13"/>
+
+            <Border Width="320"
+                    Height="320"
+                    Background="#020617"
+                    BorderBrush="#475569"
+                    BorderThickness="2"
+                    CornerRadius="8">
+
+                <Grid>
+                    <TextBlock Text="KAMERA ALANI"
+                               Foreground="#1E293B"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               FontSize="20"
+                               FontWeight="Bold"/>
+
+                    <Canvas x:Name="VisionCanvas"
+                            Width="320"
+                            Height="320"/>
+                </Grid>
+            </Border>
+
+        </StackPanel>
+
+    </Grid>
+</Window>
