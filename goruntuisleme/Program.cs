@@ -60,9 +60,10 @@ namespace IdaHavuzTesti
                     {
                         foreach (var det in detections)
                         {
-                            Console.WriteLine(
-                                $"Görülen Renk: {det.ClassName} | Güven: {det.Confidence:P0} | X: {det.X} | Y: {det.Y} | Genişlik: {det.Width}"
-                            );
+                        Console.WriteLine(
+                            $"DETECT,{det.ClassName},{det.Confidence:F2},{det.X},{det.Y},{det.Width},{det.Height}"
+                        );
+                        Console.Out.Flush();
                         }
                     }
 
