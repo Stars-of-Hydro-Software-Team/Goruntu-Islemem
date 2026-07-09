@@ -55,6 +55,18 @@ namespace IdaHavuzTesti
                     // 5. YOLOv8 ONNX Cikarimi
                     var detections = RunYoloInference(session, processedFrame);
 
+                    // Terminale görülen renkleri yazdır
+                    if (detections.Count > 0)
+                    {
+                        foreach (var det in detections)
+                        {
+                            Console.WriteLine(
+                                $"Görülen Renk: {det.ClassName} | Güven: {det.Confidence:P0} | X: {det.X} | Y: {det.Y} | Genişlik: {det.Width}"
+                            );
+                        }
+                    }
+
+
                     // 6. Tespitleri Ekrana Ciz
                     DrawDetections(processedFrame, detections);
 
