@@ -222,8 +222,7 @@ namespace IdaHavuzTesti
             }
 
             // 5d. NMS
-            CvDnn.NMSBoxes(boxes, scores, ConfThreshold, NmsThreshold, out int[] keepIndices);
-
+            int[] keepIndices = SimpleNms(boxes, scores, NmsThreshold);
             var detections = new List<Detection>();
 
             foreach (int idx in keepIndices)
@@ -353,6 +352,47 @@ namespace IdaHavuzTesti
             return distanceM * Math.Tan(angleRad);
         }
 
+        static int[] SimpleNms(List<Rect> boxes, List<float> scores, float iouThreshold)
+        {
+            var order = Enumerable.Range(0, boxes.Count)
+                                .OrderByDescending(i => scores[i])
+                                .ToList();
+
+            List<int> keep = new();
+
+            while (order.Count > 0)
+            {
+                int current = order[0];
+                keep.Add(current);
+                order.RemoveAt(0);
+
+                order = order
+                    .Where(i => IoU(boxes[current], boxes[i]) < iouThreshold)
+                    .ToList();
+            }
+
+            return keep.ToArray();
+        }
+
+        static float IoU(Rect a, Rect b)
+        {
+            int x1 = Math.Max(a.Left, b.Left);
+            int y1 = Math.Max(a.Top, b.Top);
+            int x2 = Math.Min(a.Right, b.Right);
+            int y2 = Math.Min(a.Bottom, b.Bottom);
+
+            int interW = Math.Max(0, x2 - x1);
+            int interH = Math.Max(0, y2 - y1);
+
+            int interArea = interW * interH;
+
+            int areaA = a.Width * a.Height;
+            int areaB = b.Width * b.Height;
+
+            return (float)interArea /
+                (areaA + areaB - interArea + 1e-6f);
+        }
+
         // --- Sınıfa göre gerçek duba yüksekliği ---
         static double GetRealHeightM(string className)
         {
@@ -417,4 +457,7 @@ namespace IdaHavuzTesti
         public double DistanceM { get; set; }
         public double LateralM { get; set; }
     }
+
+
+    
 }

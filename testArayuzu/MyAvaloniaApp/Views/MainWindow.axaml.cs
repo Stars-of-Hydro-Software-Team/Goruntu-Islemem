@@ -35,7 +35,7 @@ public partial class MainWindow : Window
     {
         if (_server != null)
         {
-            StatusText.Text = "Server zaten çalışıyor: 127.0.0.1:5055";
+            StatusText.Text = "Server zaten çalışıyor: 10.42.0.184:5055";
             return;
         }
 
@@ -44,7 +44,7 @@ public partial class MainWindow : Window
         _server = new TcpListener(IPAddress.Loopback, 5055);
         _server.Start();
 
-        StatusText.Text = "TCP Server çalışıyor: 127.0.0.1:5055";
+        StatusText.Text = "TCP Server çalışıyor: 10.42.0.184:5055";
 
         _ = Task.Run(() => AcceptLoop(_cts.Token));
     }
