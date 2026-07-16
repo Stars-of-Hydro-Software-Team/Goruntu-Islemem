@@ -43,7 +43,7 @@ namespace IdaHavuzTesti
             using var session = new InferenceSession(modelPath);
 
             // 2. Kamera bağlantısı
-            using var capture = new VideoCapture("/dev/video0", VideoCaptureAPIs.V4L2);
+            using var capture = new VideoCapture("/dev/video1", VideoCaptureAPIs.V4L2);
             capture.Set(VideoCaptureProperties.FourCC,
             VideoWriter.FourCC('M','J','P','G'));
 
