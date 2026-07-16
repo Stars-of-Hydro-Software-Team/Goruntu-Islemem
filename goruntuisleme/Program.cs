@@ -19,7 +19,7 @@ namespace IdaHavuzTesti
         static readonly string[] ClassNames = { "black", "green", "orange", "red", "yellow" };
 
         // Avalonia test arayüzüne TCP gönderim
-        const string UiIp = "127.0.0.1";
+        const string UiIp = "10.42.0.184";
         const int UiPort = 5055;
 
         const int InputSize = 640;
@@ -53,14 +53,6 @@ namespace IdaHavuzTesti
             capture.Set(VideoCaptureProperties.Fps, 30);
 
             Console.WriteLine($"Kamera açıldı: {capture.IsOpened()}");
-            if (!capture.IsOpened())
-            {
-                Console.WriteLine("HATA: Kamera acilamadi. Baglantiyi kontrol edin.");
-                return;
-            }
-
-            capture.Set(VideoCaptureProperties.FrameWidth, 640);
-            capture.Set(VideoCaptureProperties.FrameHeight, 480);
 
             // 3. Video kaydedici
             var fourcc = VideoWriter.FourCC('m', 'p', '4', 'v');
@@ -189,7 +181,7 @@ namespace IdaHavuzTesti
             int numBoxes = output.Dimensions[2];
             int numClasses = channels - 4;
 
-            var boxes = new List<Rect2d>();
+            var boxes = new List<Rect>();
             var scores = new List<float>();
             var classIds = new List<int>();
 
@@ -220,7 +212,11 @@ namespace IdaHavuzTesti
                 float x1 = cx - w / 2f;
                 float y1 = cy - h / 2f;
 
-                boxes.Add(new Rect2d(x1, y1, w, h));
+                boxes.Add(new Rect(
+                    (int)x1,
+                    (int)y1,
+                    (int)w,
+                    (int)h));
                 scores.Add(bestScore);
                 classIds.Add(bestClass);
             }
