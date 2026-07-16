@@ -19,7 +19,7 @@ namespace IdaHavuzTesti
         static readonly string[] ClassNames = { "black", "green", "orange", "red", "yellow" };
 
         // Avalonia test arayüzüne TCP gönderim
-        const string UiIp = "10.42.0.184";
+        const string UiIp = "10.42.0.1";
         const int UiPort = 5055;
 
         const int InputSize = 640;
@@ -48,8 +48,8 @@ namespace IdaHavuzTesti
             capture.Set(VideoCaptureProperties.FourCC,
                 VideoWriter.FourCC('Y','U','Y','V'));
 
-            capture.Set(VideoCaptureProperties.FrameWidth, 640);
-            capture.Set(VideoCaptureProperties.FrameHeight, 480);
+            capture.Set(VideoCaptureProperties.FrameWidth, 320);
+            capture.Set(VideoCaptureProperties.FrameHeight, 240);
             capture.Set(VideoCaptureProperties.Fps, 30);
 
             Console.WriteLine($"Kamera açıldı: {capture.IsOpened()}");

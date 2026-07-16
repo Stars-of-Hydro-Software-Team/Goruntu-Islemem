@@ -33,22 +33,33 @@ public partial class MainWindow : Window
 
     private void StartButton_Click(object? sender, RoutedEventArgs e)
     {
-        if (_server != null)
+        try
         {
-            StatusText.Text = "Server zaten çalışıyor: 10.42.0.184:5055";
-            return;
+            Console.WriteLine("START BUTTON BASILDI");
+
+            if (_server != null)
+            {
+                StatusText.Text = "Server zaten çalışıyor.";
+                return;
+            }
+
+            _cts = new CancellationTokenSource();
+
+            _server = new TcpListener(IPAddress.Any, 5055);
+            _server.Start();
+
+            Console.WriteLine("SERVER STARTED");
+
+            StatusText.Text = "TCP Server çalışıyor. Port:5055";
+
+            _ = Task.Run(() => AcceptLoop(_cts.Token));
         }
-
-        _cts = new CancellationTokenSource();
-
-        _server = new TcpListener(IPAddress.Loopback, 5055);
-        _server.Start();
-
-        StatusText.Text = "TCP Server çalışıyor: 10.42.0.184:5055";
-
-        _ = Task.Run(() => AcceptLoop(_cts.Token));
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+            StatusText.Text = ex.Message;
+        }
     }
-
     private async Task AcceptLoop(CancellationToken token)
     {
         try
