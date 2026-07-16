@@ -43,13 +43,16 @@ namespace IdaHavuzTesti
             using var session = new InferenceSession(modelPath);
 
             // 2. Kamera bağlantısı
-            using var capture = new VideoCapture("/dev/video1", VideoCaptureAPIs.V4L2);
+            using var capture = new VideoCapture("/dev/video4", VideoCaptureAPIs.V4L2);
+
             capture.Set(VideoCaptureProperties.FourCC,
-            VideoWriter.FourCC('M','J','P','G'));
+                VideoWriter.FourCC('Y','U','Y','V'));
 
             capture.Set(VideoCaptureProperties.FrameWidth, 640);
             capture.Set(VideoCaptureProperties.FrameHeight, 480);
             capture.Set(VideoCaptureProperties.Fps, 30);
+
+            Console.WriteLine($"Kamera açıldı: {capture.IsOpened()}");
             if (!capture.IsOpened())
             {
                 Console.WriteLine("HATA: Kamera acilamadi. Baglantiyi kontrol edin.");
