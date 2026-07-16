@@ -94,17 +94,17 @@ namespace IdaHavuzTesti
 
                     // 9. Göster ve kaydet
                     writer.Write(processedFrame);
-                    Cv2.ImShow("IDA Havuz Testi Gorusu", processedFrame);
+                    // Cv2.ImShow("IDA Havuz Testi Gorusu", processedFrame);
 
-                    if (Cv2.WaitKey(1) == 'q')
-                        break;
+                    // if (Cv2.WaitKey(1) == 'q')
+                    //     break;
                 }
             }
             finally
             {
                 capture.Release();
                 writer.Release();
-                Cv2.DestroyAllWindows();
+                // Cv2.DestroyAllWindows();
             }
         }
 
